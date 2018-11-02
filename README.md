@@ -19,7 +19,7 @@ https://blog.csdn.net/u010168781/article/details/73924974
 https://blog.csdn.net/lhq_215/article/details/78730131
 
 
-使用RTU模式
+使用RTU模式-代码来源见注释
 =======================
 ```c
 /**********************************************
