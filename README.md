@@ -92,6 +92,155 @@ int main(void)
 版权声明：本文为博主原创文章，转载请附上博文链接！
 ```
 
+代码分析-流程
+=======================
+```
+/*
+0、两个最重要的数据结构
+*/
+//modbus-private.h文件中定义的_modbus
+struct _modbus {
+    /* Slave address */
+    int slave;
+    /* Socket or file descriptor */
+    int s;
+    int debug;
+    int error_recovery;
+    struct timeval response_timeout;
+    struct timeval byte_timeout;
+    struct timeval indication_timeout;
+    const modbus_backend_t *backend;
+    void *backend_data;
+};
+
+//_modbus在modbus.h中被typedef成modbus_t
+typedef struct _modbus modbus_t;
+
+//modbus_backend_t的定义
+typedef struct _modbus_backend {
+    unsigned int backend_type;
+    unsigned int header_length;
+    unsigned int checksum_length;
+    unsigned int max_adu_length;
+    int (*set_slave) (modbus_t *ctx, int slave);
+    int (*build_request_basis) (modbus_t *ctx, int function, int addr,
+                                int nb, uint8_t *req);
+    int (*build_response_basis) (sft_t *sft, uint8_t *rsp);
+    int (*prepare_response_tid) (const uint8_t *req, int *req_length);
+    int (*send_msg_pre) (uint8_t *req, int req_length);
+    ssize_t (*send) (modbus_t *ctx, const uint8_t *req, int req_length);
+    int (*receive) (modbus_t *ctx, uint8_t *req);
+    ssize_t (*recv) (modbus_t *ctx, uint8_t *rsp, int rsp_length);
+    int (*check_integrity) (modbus_t *ctx, uint8_t *msg,
+                            const int msg_length);
+    int (*pre_check_confirmation) (modbus_t *ctx, const uint8_t *req,
+                                   const uint8_t *rsp, int rsp_length);
+    int (*connect) (modbus_t *ctx);
+    void (*close) (modbus_t *ctx);
+    int (*flush) (modbus_t *ctx);
+    int (*select) (modbus_t *ctx, fd_set *rset, struct timeval *tv, int msg_length);
+    void (*free) (modbus_t *ctx);
+} modbus_backend_t;
+
+
+/*
+1、初始化设备，下面是初始化RTU模式的代码
+mb = modbus_new_rtu("/dev/ttymxc1",19200,'E',8,1);
+在上面的函数中RTU模式的初始值被赋值成下面的常量。
+*/
+//RTU模式ctx->backend被赋值的的初始值
+const modbus_backend_t _modbus_rtu_backend = {
+    _MODBUS_BACKEND_TYPE_RTU,
+    _MODBUS_RTU_HEADER_LENGTH,
+    _MODBUS_RTU_CHECKSUM_LENGTH,
+    MODBUS_RTU_MAX_ADU_LENGTH,
+    _modbus_set_slave,
+    _modbus_rtu_build_request_basis,
+    _modbus_rtu_build_response_basis,
+    _modbus_rtu_prepare_response_tid,
+    _modbus_rtu_send_msg_pre,
+    _modbus_rtu_send,
+    _modbus_rtu_receive,
+    _modbus_rtu_recv,
+    _modbus_rtu_check_integrity,
+    _modbus_rtu_pre_check_confirmation,
+    _modbus_rtu_connect,
+    _modbus_rtu_close,
+    _modbus_rtu_flush,
+    _modbus_rtu_select,
+    _modbus_rtu_free
+};
+//如果使用TCP模式的modbus_t* modbus_new_tcp(const char *ip, int port)函数，那么ctx->backend就会被赋值成下面的常量
+//TCP模式ctx->backend被赋值的初始值
+const modbus_backend_t _modbus_tcp_backend = {
+    _MODBUS_BACKEND_TYPE_TCP,
+    _MODBUS_TCP_HEADER_LENGTH,
+    _MODBUS_TCP_CHECKSUM_LENGTH,
+    MODBUS_TCP_MAX_ADU_LENGTH,
+    _modbus_set_slave,
+    _modbus_tcp_build_request_basis,
+    _modbus_tcp_build_response_basis,
+    _modbus_tcp_prepare_response_tid,
+    _modbus_tcp_send_msg_pre,
+    _modbus_tcp_send,
+    _modbus_tcp_receive,
+    _modbus_tcp_recv,
+    _modbus_tcp_check_integrity,
+    _modbus_tcp_pre_check_confirmation,
+    _modbus_tcp_connect,
+    _modbus_tcp_close,
+    _modbus_tcp_flush,
+    _modbus_tcp_select,
+    _modbus_tcp_free
+};
+
+
+/*
+2、modbus_set_slave(mb,1);
+
+*/
+
+/*3、modbus_connect(mb);
+
+*/
+
+
+/*
+4、	t.tv_sec=0;
+    t.tv_usec=1000000;//1000ms
+    modbus_set_response_timeout(mb,&t);
+*/
+
+
+/*
+5、读取一次寄存器的流程
+*/
+modbus_read_registers()
+{
+	//1.发送请求出去
+	send_msg(ctx, req, req_length);
+		{
+			 do {
+					rc = ctx->backend->send(ctx, msg, msg_length);        				
+				} while ((ctx->error_recovery & MODBUS_ERROR_RECOVERY_LINK) && rc == -1);
+		}
+	
+	
+	//2、接收应答
+	_modbus_receive_msg(ctx, rsp, MSG_CONFIRMATION);
+		{
+			while (length_to_read != 0)
+			{
+				//select与recv函数是调用的系统函数，在初始化的时候就已经指定好了。
+				ctx->backend->select(ctx, &rset, p_tv, length_to_read);
+				ctx->backend->recv(ctx, msg + msg_length, length_to_read);
+			}
+		}
+	
+	//校验应答
+	check_confirmation(ctx, req, rsp, rc);	
+}
+```
 
 A groovy modbus library
 =======================
