@@ -18,6 +18,81 @@ https://blog.csdn.net/u010168781/article/details/73924974
 
 https://blog.csdn.net/lhq_215/article/details/78730131
 
+
+使用RTU模式
+=======================
+```c
+/**********************************************
+*简介：Linux下modbusRTU测试程序
+*作者：郭纬
+*日期：2017-5-16
+*版本：V1.0
+**********************************************/
+
+#include<stdio.h>
+#include<stdlib.h>
+#include"modbus.h"
+#include <memory.h>
+
+int main(void)
+{
+    modbus_t *mb;
+    uint16_t tab_reg[64]={0};
+
+    //1-打开端口
+    //在下面函数中会把const modbus_backend_t _modbus_rtu_backend赋值给ctx->backend
+    mb = modbus_new_rtu("/dev/ttymxc1",19200,'E',8,1);
+
+    //2-设置从地址
+    modbus_set_slave(mb,1);
+
+    //3-建立连接
+    modbus_connect(mb);
+
+    //4-设置应答延时
+    struct timeval t;
+    t.tv_sec=0;
+    t.tv_usec=1000000;//1000ms
+    modbus_set_response_timeout(mb,&t);
+
+    //5-循环读
+    int num = 0;
+    while(1)
+    {   
+        memset(tab_reg,0,64*2);
+
+        //6-读寄存器设置：寄存器地址、数量、数据缓冲
+        int regs=modbus_read_registers(mb, 0, 20, tab_reg); 
+       
+        printf("-------------------------------------------\n");
+        printf("[%4d][read num = %d]",num,regs);
+        num++;
+        
+        int i;
+        for(i=0; i<20; i++)
+        {
+            printf("<%#x>",tab_reg[i]);
+        }
+        printf("\n");
+        printf("-------------------------------------------\n");
+        sleep(1);
+    }
+
+    //7-关闭modbus端口
+    modbus_close(mb); 
+
+    //8-释放modbus资源
+    modbus_free(mb);
+    return 0;
+}
+--------------------- 
+作者：郭老二 
+来源：CSDN 
+原文：https://blog.csdn.net/u010168781/article/details/73924974 
+版权声明：本文为博主原创文章，转载请附上博文链接！
+```
+
+
 A groovy modbus library
 =======================
 
