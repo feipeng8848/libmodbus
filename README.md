@@ -161,7 +161,7 @@ const modbus_backend_t _modbus_rtu_backend = {
     _modbus_rtu_send_msg_pre,
     _modbus_rtu_send,
     _modbus_rtu_receive,
-    _modbus_rtu_recv,
+    _modbus_rtu_recv,//如果是Linux系统，这里会使用read()函数
     _modbus_rtu_check_integrity,
     _modbus_rtu_pre_check_confirmation,
     _modbus_rtu_connect,
@@ -233,7 +233,7 @@ modbus_read_registers()
 			{
 				//select与recv函数是调用的系统函数，在初始化的时候就已经指定好了。
 				ctx->backend->select(ctx, &rset, p_tv, length_to_read);
-				ctx->backend->recv(ctx, msg + msg_length, length_to_read);
+				ctx->backend->recv(ctx, msg + msg_length, length_to_read);//如果是Linux系统，这里会使用read()函数
 			}
 		}
 	
