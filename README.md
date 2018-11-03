@@ -148,7 +148,7 @@ typedef struct _modbus_backend {
 mb = modbus_new_rtu("/dev/ttymxc1",19200,'E',8,1);
 在上面的函数中RTU模式的初始值被赋值成下面的常量。
 */
-//RTU模式ctx->backend被赋值的的初始值
+//RTU模式ctx->backend被赋值的的初始值(在文件modbus-rtu.c中)
 const modbus_backend_t _modbus_rtu_backend = {
     _MODBUS_BACKEND_TYPE_RTU,
     _MODBUS_RTU_HEADER_LENGTH,
@@ -171,7 +171,7 @@ const modbus_backend_t _modbus_rtu_backend = {
     _modbus_rtu_free
 };
 //如果使用TCP模式的modbus_t* modbus_new_tcp(const char *ip, int port)函数，那么ctx->backend就会被赋值成下面的常量
-//TCP模式ctx->backend被赋值的初始值
+//TCP模式ctx->backend被赋值的初始值（在文件modbus-tcp.c中）
 const modbus_backend_t _modbus_tcp_backend = {
     _MODBUS_BACKEND_TYPE_TCP,
     _MODBUS_TCP_HEADER_LENGTH,
