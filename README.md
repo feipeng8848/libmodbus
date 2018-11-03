@@ -210,7 +210,7 @@ int modbus_set_slave(modbus_t *ctx, int slave)
 }
 
 /*3、modbus_connect(mb);
-
+实际上真正执行的还是_modbus_rtu_backend或者_modbus_tcp_backend的connect
 */
 int modbus_connect(modbus_t *ctx)
 {
