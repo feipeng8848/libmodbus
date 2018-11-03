@@ -199,6 +199,15 @@ const modbus_backend_t _modbus_tcp_backend = {
 2、modbus_set_slave(mb,1);
 
 */
+int modbus_set_slave(modbus_t *ctx, int slave)
+{
+    if (ctx == NULL) {
+        errno = EINVAL;
+        return -1;
+    }
+
+    return ctx->backend->set_slave(ctx, slave);
+}
 
 /*3、modbus_connect(mb);
 
