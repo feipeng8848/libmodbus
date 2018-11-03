@@ -212,12 +212,21 @@ int modbus_set_slave(modbus_t *ctx, int slave)
 /*3、modbus_connect(mb);
 
 */
+int modbus_connect(modbus_t *ctx)
+{
+    if (ctx == NULL) {
+        errno = EINVAL;
+        return -1;
+    }
 
+    return ctx->backend->connect(ctx);
+}
 
 /*
-4、	t.tv_sec=0;
-    t.tv_usec=1000000;//1000ms
-    modbus_set_response_timeout(mb,&t);
+4、	设置超时
+t.tv_sec=0;
+t.tv_usec=1000000;//1000ms
+modbus_set_response_timeout(mb,&t);
 */
 
 
